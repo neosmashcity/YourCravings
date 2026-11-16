@@ -1,0 +1,36 @@
+/* CSS for AppHeader component */
+
+.app-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    width: 100%;
+    padding: 15px 20px;
+    background: rgba(255, 240, 247, 0.95);
+    border-bottom: 1px solid #f5d8e5;
+    backdrop-filter: blur(10px);
+}
+
+.header-title {
+    grid-column: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #d8759e;
+    font-size: 1.15rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.header-date {
+    grid-column: 3;
+    justify-self: end;
+    margin-right: -10px;
+    color: #a9788e;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}

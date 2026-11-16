@@ -1,0 +1,63 @@
+﻿@using YourCravings.Services
+@implements IDisposable
+@inject DateTimeService DateService
+
+<header class="app-header">
+
+    <div class="header-title">
+        <span>今日のわがまま</span>
+    </div>
+
+    <div class="header-date">@currentDate</div>
+
+</header>
+
+@code {
+    // ヘッダーに表示する現在の日付
+    private string currentDate = string.Empty;
+
+    // 1分ごとに日付表示を更新するタイマー
+    private System.Threading.Timer? timer;
+
+    // コンポーネントの初期化時に日付を設定し、定期更新を開始する
+    protected override void OnInitialized()
+    {
+        UpdateDate();
+
+        // 1分ごとに日付を更新
+        timer = new System.Threading.Timer(
+            _ =>
+            {
+                InvokeAsync(() =>
+                {
+                    UpdateDate();
+                    StateHasChanged();
+                });
+            },
+            null,
+            TimeSpan.FromMinutes(1),
+            TimeSpan.FromMinutes(1)
+        );
+    }
+
+    // DateTimeServiceから今日の日付を取得し、曜日付きの表示文字列を作成する
+    private void UpdateDate()
+    {
+        var today = DateService.GetToday();
+
+        // 曜日番号（0～6）に対応する日本語の曜日
+        var weekdays = new[]
+        {
+            "日", "月", "火", "水", "木", "金", "土"
+        };
+
+        // 「月/日（曜日）」の形式で表示する
+        currentDate = $"{today:M/d}（{weekdays[(int)today.DayOfWeek]}）";
+    }
+
+    // コンポーネント破棄時にタイマーを停止・解放する
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}

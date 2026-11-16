@@ -1,0 +1,11 @@
+.app-container {
+    min-height: 100vh;
+    background: #fff9fc;
+}
+
+.main-content {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+}

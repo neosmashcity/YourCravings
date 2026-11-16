@@ -1,0 +1,206 @@
+/* HistoryCalendarコンポーネントのスタイル */
+
+/* ヘッダー */
+.calendar-heading {
+    margin-bottom: 20px;
+}
+
+    /* カレンダー画面の戻るボタン */
+    .calendar-heading button {
+        grid-column: 3;
+        justify-self: end;
+    }
+
+/* 月移動ボタンと表示中の年月を横並びに配置 */
+.calendar-month-navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 14px;
+}
+
+    /* カレンダーの月移動ボタン */
+    .calendar-month-navigation button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        border-radius: 50%;
+        font-size: 1.4rem;
+    }
+
+        .calendar-month-navigation button span {
+            display: block;
+            transform: translateY(-2px);
+        }
+
+    /* 表示中の年月 */
+    .calendar-month-navigation h3 {
+        min-width: 120px;
+        margin: 0;
+        color: #d8759e;
+        font-size: 1.2rem;
+        font-weight: 700;
+        text-align: center;
+    }
+
+/* 表示中の月のわがまま合計数 */
+.calendar-month-summary {
+    margin-bottom: 16px;
+    padding: 10px;
+    border: 1px solid #f3d4e1;
+    border-radius: 12px;
+    background: #fff7fa;
+    color: #a75f80;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* 7列のカレンダーをグリッド形式で配置 */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+}
+
+/* 日曜日から土曜日までの曜日見出し */
+.calendar-weekday {
+    padding: 7px 0;
+    color: #a75f80;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* 月初日の曜日に合わせて配置する空白マス */
+.calendar-empty {
+    min-width: 0;
+}
+
+/* カレンダーの日付ボタンの基本デザイン */
+.calendar-day {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 48px;
+    padding: 4px 0;
+    border: 1px solid #f3d4e1;
+    border-radius: 10px;
+    background: #fff;
+    color: #9f7185;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+    /* 日付ボタンにマウスを乗せたとき */
+    .calendar-day:hover {
+        background: #fff0f6;
+        border-color: #d8759e;
+    }
+
+    /* 履歴が存在する日付のデザイン */
+    .calendar-day.has-history {
+        background: #fff0f6;
+        border-color: #edc3d5;
+    }
+
+        /* 履歴がある日付にマウスを乗せたとき */
+        .calendar-day.has-history:hover {
+            border-color: #d8759e;
+        }
+
+    /* 現在選択されている日付のデザイン */
+    .calendar-day.selected {
+        background: #d8759e;
+        border-color: #d8759e;
+        color: #fff;
+        font-weight: 700;
+    }
+
+/* 履歴がある日付に表示するハート */
+.calendar-heart {
+    color: #d8759e;
+    font-size: 0.7rem;
+    line-height: 1;
+}
+
+/* 選択中の日付ではハートも白色にする */
+.calendar-day.selected .calendar-heart {
+    color: #fff;
+}
+
+/* 選択した日の履歴を表示する詳細エリア */
+.calendar-day-details {
+    margin-top: 20px;
+    padding: 14px;
+    border: 1px solid #f3d4e1;
+    border-radius: 14px;
+    background: #fff;
+}
+
+    /* 選択した日の詳細エリアの見出し */
+    .calendar-day-details h3 {
+        margin: 0 0 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #f3d4e1;
+        color: #d8759e;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    /* 選択した日に履歴がない場合のメッセージ */
+    .calendar-day-details p {
+        margin: 0;
+        padding: 10px 0;
+        color: #a9788e;
+        font-size: 0.9rem;
+        text-align: center;
+    }
+
+/* 選択した日のサービス項目 */
+.calendar-service {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 5px 0;
+    color: #9f7185;
+    font-size: 0.9rem;
+}
+
+    /* サービス項目の先頭に表示するハート */
+    .calendar-service span {
+        color: #d8759e;
+    }
+
+/* カレンダー画面直下に配置されたメッセージの共通設定 */
+.calendar-page > p {
+    padding: 30px 10px;
+    text-align: center;
+}
+
+    /* 最初のメッセージ（読み込み中など）の文字色 */
+    .calendar-page > p:first-child {
+        color: #a9788e;
+    }
+
+/* 履歴の読み込み中に表示するメッセージ */
+.calendar-message {
+    padding: 30px 10px;
+    color: #a9788e;
+    text-align: center;
+}
+
+/* 履歴の取得に失敗した場合のエラーメッセージ */
+.calendar-error {
+    padding: 30px 10px;
+    color: #d95375;
+    text-align: center;
+}

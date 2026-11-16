@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YourCravings</title>
+    <base href="./" />
+    <link rel="preload" id="webassembly" />
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="icon" type="image/png" href="heart_icon.png" />
+    <link href="YourCravings.styles.css" rel="stylesheet" />
+    <script type="importmap"></script>
+</head>
+
+<body>
+    <div id="app">
+        <svg class="loading-progress"
+             viewBox="0 0 100 100"
+             xmlns="http://www.w3.org/2000/svg">
+
+            <defs>
+                <clipPath id="heartFillClip">
+                    <rect class="heart-fill-clip"
+                          x="0"
+                          y="100%"
+                          width="100%"
+                          height="0" />
+                </clipPath>
+            </defs>
+
+            <!-- ハートのベース -->
+            <path class="heart-background"
+                  d="M50 88
+                 C44 82 12 60 12 35
+                 C12 18 24 10 37 10
+                 C44 10 49 14 50 21
+                 C51 14 56 10 63 10
+                 C76 10 88 18 88 35
+                 C88 60 56 82 50 88 Z" />
+
+            <!-- 進捗に合わせて満たされるハート -->
+            <path class="heart-foreground"
+                  clip-path="url(#heartFillClip)"
+                  d="M50 88
+                 C44 82 12 60 12 35
+                 C12 18 24 10 37 10
+                 C44 10 49 14 50 21
+                 C51 14 56 10 63 10
+                 C76 10 88 18 88 35
+                 C88 60 56 82 50 88 Z" />
+        </svg>
+
+        <div class="loading-progress-text"></div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">🗙</span>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="js/emailJs.js"></script>
+    <script src="js/localStorage.js"></script>
+    <script src="js/historyApi.js"></script>
+
+    <script>
+            (function () {
+                const redirect = window.location.search;
+
+                if (redirect.startsWith("?/")) {
+                    const route = redirect
+                        .substring(2)
+                        .replace(/~and~/g, "&");
+
+                    window.history.replaceState(
+                        null,
+                        "",
+                        window.location.pathname + route + window.location.hash
+                    );
+                }
+            })();
+    </script>
+
+    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+</body>
+
+</html>

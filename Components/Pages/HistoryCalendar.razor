@@ -1,0 +1,233 @@
+﻿@page "/HistoryCalendar"
+
+@using YourCravings.Models
+@using YourCravings.Services
+@using System.Globalization
+
+@inject AuthenticationService AuthService
+@inject DateTimeService DateService
+@inject HistoryService HistoryService
+@inject NavigationManager Navigation
+
+<PageTitle>わがままカレンダー</PageTitle>
+
+<div class="calendar-page">
+
+    <div class="calendar-heading">
+        <h2>カレンダー</h2>
+
+        <button type="button" @onclick="GoBack">戻る</button>
+    </div>
+
+    @if (isLoading)
+    {
+        <p class="calendar-message">カレンダーを読み込み中...</p>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <p class="calendar-error">@errorMessage</p>
+    }
+    else
+    {
+        <div class="calendar-month-navigation">
+
+            <button type="button" @onclick="PreviousMonth">
+                <span>‹</span>
+            </button>
+
+            <h3>@currentMonth.ToString("yyyy年M月")</h3>
+
+            <button type="button" @onclick="NextMonth">
+                <span>›</span>
+            </button>
+
+        </div>
+
+        <div class="calendar-month-summary">
+            @currentMonth.ToString("M月")のわがまま：@MonthlyWishCount 個
+        </div>
+
+        <div class="calendar-grid">
+
+            @foreach (var weekday in new[] { "日", "月", "火", "水", "木", "金", "土" })
+            {
+                <div class="calendar-weekday">
+                    @weekday
+                </div>
+            }
+
+            @for (var i = 0; i < FirstDayOffset; i++)
+            {
+                <div class="calendar-empty"></div>
+            }
+
+            @for (var day = 1; day <= DaysInMonth; day++)
+            {
+                var selectedDay = day;
+                var date = new DateOnly(currentMonth.Year, currentMonth.Month, selectedDay);
+                var dateString = date.ToString("yyyy-MM-dd");
+
+                var hasHistory = histories.Any(history => history.Date == dateString);
+
+                var isSelected = selectedDate == date;
+
+                <button type="button"
+                        class="calendar-day @(hasHistory ? "has-history" : "") @(isSelected ? "selected" : "")"
+                        @onclick="() => SelectDate(selectedDay)">
+
+                    <span>@selectedDay</span>
+
+                    @if (hasHistory)
+                    {
+                        <span class="calendar-heart">♥</span>
+                    }
+
+                </button>
+            }
+
+        </div>
+
+        @if (selectedDate.HasValue)
+        {
+            var dayHistories = GetHistoriesForDate(selectedDate.Value);
+
+            <div class="calendar-day-details">
+
+                <h3>
+                    @selectedDate.Value.ToString("M月d日")
+                    のわがまま
+                </h3>
+
+                @if (dayHistories.Count == 0)
+                {
+                    <p>この日のわがままはないよ</p>
+                }
+                else
+                {
+                    @foreach (var history in dayHistories)
+                    {
+                        @foreach (var service in history.SelectedServices)
+                        {
+                            <div class="calendar-service">
+                                <span>♥</span>
+                                @service
+                            </div>
+                        }
+                    }
+                }
+
+            </div>
+        }
+    }
+
+</div>
+
+@code {
+    // GASから取得したすべての履歴データ
+    private List<CravingHistory> histories = new();
+
+    // 現在カレンダーに表示している月（その月の1日を保持）
+    private DateOnly currentMonth;
+
+    // カレンダーで選択されている日付（未選択の場合はnull）
+    private DateOnly? selectedDate;
+
+    // 履歴を読み込み中か
+    private bool isLoading = true;
+
+    // 履歴の取得に失敗した場合に表示するエラーメッセージ
+    private string errorMessage = string.Empty;
+
+    // 月初日の曜日を取得（日曜日=0、月曜日=1 ... 土曜日=6）
+    // カレンダーの最初に配置する空白マスの数として使用する
+    private int FirstDayOffset =>
+        (int)new DateOnly(currentMonth.Year, currentMonth.Month, 1).DayOfWeek;
+
+    // 表示中の月の日数を取得（28～31日）
+    private int DaysInMonth => DateTime.DaysInMonth(currentMonth.Year, currentMonth.Month);
+
+    // 表示中の月に記録されたサービスの合計数を取得
+    private int MonthlyWishCount =>
+        histories
+            .Where(history => history.Date.StartsWith(
+                currentMonth.ToString("yyyy-MM", CultureInfo.InvariantCulture)))
+            .Sum(history => history.SelectedServices.Count);
+
+
+    // 画面表示時に現在の月を設定し、ログイン状態の確認と履歴取得を行う
+    protected override async Task OnInitializedAsync()
+    {
+        // DateTimeServiceからJSTの今日の日付を取得
+        var today = DateService.GetToday();
+
+        // カレンダーの初期表示を今月に設定
+        currentMonth = new DateOnly(today.Year, today.Month, 1);
+
+        // ログインしていない場合はログイン画面へ戻す
+        if (!await AuthService.IsAuthenticatedAsync())
+        {
+            Navigation.NavigateTo($"{Navigation.BaseUri}Login");
+            return;
+        }
+
+        try
+        {
+            // HistoryService経由で履歴を取得（キャッシュがあれば再利用）
+            histories = await HistoryService.GetHistoriesAsync();
+        }
+        catch
+        {
+            // 履歴の取得に失敗した場合はエラーメッセージを表示
+            errorMessage = "履歴を読み込めなかったよ。通信環境を確認してね";
+        }
+        finally
+        {
+            // 成功・失敗にかかわらず読み込み状態を解除
+            isLoading = false;
+        }
+    }
+
+    // カレンダーの表示を前月に切り替える
+    private void PreviousMonth()
+    {
+        currentMonth = currentMonth.AddMonths(-1);
+
+        // 月を切り替えたら、選択中の日付を解除
+        selectedDate = null;
+    }
+
+    // カレンダーの表示を翌月に切り替える
+    private void NextMonth()
+    {
+        currentMonth = currentMonth.AddMonths(1);
+
+        // 月を切り替えたら、選択中の日付を解除
+        selectedDate = null;
+    }
+
+    // 指定された日付をカレンダー上で選択する
+    private void SelectDate(int day)
+    {
+        selectedDate = new DateOnly(
+            currentMonth.Year,
+            currentMonth.Month,
+            day);
+    }
+
+    // 指定された日付に記録されている履歴だけを抽出する
+    private List<CravingHistory> GetHistoriesForDate(DateOnly date)
+    {
+        // 履歴データの日付形式（yyyy-MM-dd）に合わせる
+        var dateString = date.ToString("yyyy-MM-dd");
+
+        return histories
+            .Where(history => history.Date == dateString)
+            .ToList();
+    }
+
+    // 履歴一覧画面へ戻る
+    private void GoBack()
+    {
+        Navigation.NavigateTo($"{Navigation.BaseUri}History");
+    }
+}

@@ -1,0 +1,266 @@
+/* アプリ共通のスタイル */
+
+/* アプリ全体の基本フォント */
+html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* ========================================
+   Blazor標準スタイル
+======================================== */
+
+/* Blazorでエラーが発生したときに画面下部に表示する通知 */
+#blazor-error-ui {
+    color-scheme: light only;
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    /* エラー通知を閉じるボタン */
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+
+/* Blazorのコンポーネント内で未処理エラーが発生したときの表示 */
+.blazor-error-boundary {
+    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cub3JnLzE5OTkveGxpbmsiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIzNSIgeT0iNTEiIHdpZHRoPSI1NiIgaGVpZ2h0PSI0OSIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMzUgLTUxKSI+PHBhdGggZD0iTTI2My41MDYgNTFDMjY0LjcxNyA1MSAyNjUuODEzIDUxLjQ4MzcgMjY2LjYwNiA1Mi4yNjU4TDI2Ny4wNTIgNTIuNzk4NyAyNjcuNTM5IDUzLjYyODMgMjkwLjE4NSA5Mi4xODMxIDI5MC41NDUgOTIuNzk1IDI5MC42NTYgOTIuOTk2QzI5MC44NzcgOTMuNTEzIDI5MSA5NC4wODE1IDI5MSA5NC42NzgyIDI5MSA5Ny4wNjUxIDI4OS4wMzggOTkgMjg2LjYxNyA5OUwyNDAuMzgzIDk5QzIzNy45NjMgOTkgMjM2IDk3LjA2NTEgMjM2IDk0LjY3ODIgMjM2IDk0LjM3OTkgMjM2LjAzMSA5NC4wODg2IDIzNi4wODkgOTMuODA3MkwyMzYuMzM4IDkzLjAxNjIgMjM2Ljg1OCA5Mi4xMzE0IDI1OS40NzMgNTMuNjI5NCAyNTkuOTYxIDUyLjc5ODUgMjYwLjQwNyA1Mi4yNjU4QzI2MS4yIDUxLjQ4MzcgMjYyLjI5NiA1MSAyNjMuNTA2IDUxWk0yNjMuNTg2IDY2LjAxODNDMjYwLjczNyA2Ni4wMTgzIDI1OS4zMTMgNjcuMTI0NSAyNTkuMzEzIDY5LjMzNyAyNTkuMzEzIDY5LjYxMDIgMjU5LjMzMiA2OS44NjA4IDI1OS4zNzEgNzAuMDg4N0wyNjEuNzk1IDg0LjAxNjEgMjY1LjM4IDg0LjAxNjEgMjY3LjgyMSA2OS43NDc1QzI2Ny44NiA2OS43MzA5IDI2Ny44NzkgNjkuNTg3NyAyNjcuODc5IDY5LjMxNzkgMjY3Ljg3OSA2Ny4xMTgyIDI2Ni40NDggNjYuMDE4MyAyNjMuNTg2IDY2LjAxODNaTTI2My41NzYgODYuMDU0N0MyNjEuMDQ5IDg2LjA1NDcgMjU5Ljc4NiA4Ny4zMDA1IDI1OS43ODYgODkuNzkyMSAyNTkuNzg2IDkyLjI4MzcgMjYxLjA0OSA5My41Mjk1IDI2My41NzYgOTMuNTI5NSAyNjYuMTE2IDkzLjUyOTUgMjY3LjM4NyA5Mi4yODM3IDI2Ny4zODcgODkuNzkyMSAyNjcuMzg3IDg3LjMwMDUgMjY2LjExNiA4Ni4wNTQ3IDI2My41NzYgODYuMDU0N1oiIGZpbGw9IiNGRkU1MDAiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L3N2Zz4=) no-repeat 1rem/1.8rem, #b32121;
+    padding: 1rem 1rem 1rem 3.7rem;
+    color: white;
+}
+
+    /* エラー表示に出す標準メッセージ */
+    .blazor-error-boundary::after {
+        content: "An error has occurred."
+    }
+
+
+/* ハート型の読み込み進捗表示 */
+.loading-progress {
+    position: absolute;
+    display: block;
+    width: 8rem;
+    height: 8rem;
+    inset: 20vh 0 auto 0;
+    margin: 0 auto;
+}
+
+/* ハートの背景 */
+.heart-background {
+    fill: #fff0f6;
+    stroke: #d8759e;
+    stroke-width: 2;
+    stroke-linejoin: round;
+}
+
+/* 進捗に合わせて塗りつぶすハート */
+.heart-foreground {
+    fill: #d8759e;
+}
+
+/* ハートの塗りつぶし位置 */
+.heart-fill-clip {
+    y: calc(100% - var(--blazor-load-percentage, 0%));
+    height: var(--blazor-load-percentage, 0%);
+}
+
+
+/* 読み込み進捗メッセージ */
+.loading-progress-text {
+    position: absolute;
+    text-align: center;
+    font-weight: bold;
+    color: #c94f82;
+    inset: calc(20vh + 7.5rem) 0 auto 0;
+}
+
+    /* 読み込み進捗メッセージ内容 */
+    .loading-progress-text:after {
+        content: "Loading... ♡";
+    }
+
+/* ========================================
+   404 ページ
+======================================== */
+
+/* 404画面全体の配置 */
+.not-found-page {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 64px 20px;
+    text-align: center;
+}
+
+/* ハートの装飾 */
+.not-found-heart {
+    color: #d8759e;
+    font-size: 5rem;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    animation: not-found-heart-beat 1.8s ease-in-out infinite;
+}
+
+/* 404の数字 */
+.not-found-page h2 {
+    color: #c94f82;
+    font-size: 2.8rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+/* メッセージ見出し */
+.not-found-page h3 {
+    color: #c94f82;
+    font-size: 1.15rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+/* 説明文 */
+.not-found-page p {
+    color: #987888;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    margin-bottom: 28px;
+}
+
+/* トップページへ戻るボタン */
+.not-found-button {
+    display: block;
+    margin-top: 25px;
+    text-decoration: none;
+    text-align: center;
+}
+
+/* ハートの鼓動アニメーション */
+@keyframes not-found-heart-beat {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.12);
+    }
+}
+
+/* ========================================
+   共通CSS
+======================================== */
+
+/* 各画面の共通レイアウト */
+.selection-page,
+.calendar-page,
+.history-page {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+/* 各画面の見出し共通デザイン */
+.selection-heading,
+.calendar-heading,
+.history-heading {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+}
+
+    /* 各画面の見出しタイトル共通デザイン */
+    .selection-heading h2,
+    .calendar-heading h2,
+    .history-heading h2 {
+        grid-column: 2;
+        grid-row: 1;
+        margin: 0;
+        color: #d8759e;
+        font-size: 1.25rem;
+        font-weight: 700;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    /* 各画面の通常ボタン共通デザイン */
+    .history-button,
+    .calendar-heading button,
+    .calendar-month-navigation button,
+    .history-heading button,
+    .history-sort-button {
+        border: 1px solid #edc3d5;
+        background: #fff;
+        color: #d8759e;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        /* 各画面の通常ボタン共通ホバー */
+        .history-button:hover,
+        .calendar-heading button:hover,
+        .calendar-month-navigation button:hover,
+        .history-heading button:hover,
+        .history-sort-button:hover {
+            background: #fff0f6;
+            border-color: #d8759e;
+        }
+
+    /* 見出し内に配置するボタンの共通設定 */
+    .history-button,
+    .calendar-heading button,
+    .history-heading button {
+        grid-row: 1;
+        flex-shrink: 0;
+        padding: 8px 13px;
+    }
+
+    /* 丸みのある通常ボタンの共通デザイン */
+    .history-button,
+    .calendar-heading button,
+    .history-heading button,
+    .history-sort-button {
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+/* アクションボタンの共通デザイン */
+.not-found-button,
+.complete-button,
+.login-button {
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    padding: 15px;
+    background: linear-gradient(135deg, #ed9fbd, #df7fa7);
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+    /* アクションボタンの共通ホバー */
+    .not-found-button:hover,
+    .login-button:hover:not(:disabled),
+    .complete-button:hover:not(:disabled),
+    .anniversary-button:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+    }
+
+/* 入力欄の共通フォーカスデザイン */
+.login-input:focus,
+.message-section textarea:focus {
+    border-color: #e58caf;
+    box-shadow: 0 0 0 3px rgba(229, 140, 175, 0.15);
+}

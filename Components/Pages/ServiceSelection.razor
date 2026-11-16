@@ -1,0 +1,401 @@
+﻿@page "/ServiceSelection"
+
+@using System.Text.Json
+@using YourCravings.Models
+@using YourCravings.Services
+
+@inject AuthenticationService AuthService
+@inject DateTimeService DateService
+@inject EmailJsService EmailService
+@inject HistoryService HistoryService
+@inject LocalStorageService StorageService
+@inject NavigationManager Navigation
+@inject NavigationMessageService NavigationMessage
+
+<PageTitle>サービス選択</PageTitle>
+
+<div class="selection-page @(isSpecialDay ? "special-day" : "")">
+
+    <div class="selection-heading">
+        <button type="button" class="history-button" @onclick="NavigateToHistory">
+            履歴
+        </button>
+
+        <h2>今日は何してほしい？</h2>
+    </div>
+
+    <div class="selection-info">
+        @if (isSpecialDay)
+        {
+            <div class="special-day-title">
+                <span>♡</span>
+                今日は特別な日
+                <span>♡</span>
+            </div>
+            <div class="special-day-description">
+                3つまで選べるよ ♡
+            </div>
+        }
+        else
+        {
+            <span>1つ選んでね♡</span>
+        }
+    </div>
+
+    <div class="service-list">
+        @foreach (var service in ServiceData.Services)
+        {
+            <button type="button"
+                    class="service-item @(selectedServices.Contains(service.Id) ? "selected" : "")"
+                    disabled="@hasPendingSubmission"
+                    @onclick="() => ToggleService(service.Id)">
+
+                <span class="service-check">
+                    @if (selectedServices.Contains(service.Id))
+                    {
+                        <span class="filled-heart">♥</span>
+                    }
+                    else
+                    {
+                        <span>♡</span>
+                    }
+                </span>
+
+                <span>@service.Name</span>
+
+            </button>
+        }
+    </div>
+
+    <div class="message-section">
+        <label for="message">伝えたいことがあれば書いてね♡</label>
+
+        <textarea id="message"
+                  @bind="message"
+                  maxlength="500"
+                  placeholder="今日はこんな気分だよ..."
+                  rows="4"
+                  disabled="@hasPendingSubmission">
+        </textarea>
+
+        <div class="message-count">@message.Length / 500</div>
+    </div>
+    
+    <button type="button"
+            class="complete-button"
+            disabled="@(selectedServices.Count == 0 || isSubmitting || emailSent)"
+            @onclick="HandleCompleteAsync">
+
+        @(isSubmitting ? "送信中..." : isHistoryRetry ? "履歴保存を再試行 ♡" : "これにする ♡")
+
+    </button>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <p class="submission-error">@errorMessage</p>
+    }
+
+</div>
+
+@if (showAnniversaryPopup)
+{
+    <div class="anniversary-overlay">
+        <div class="anniversary-popup">
+
+            <div class="anniversary-decoration">
+                <span>✧</span>
+                <span>♡</span>
+                <span>✧</span>
+            </div>
+
+            <p class="anniversary-subtitle">SPECIAL ANNIVERSARY</p>
+
+            <h1 class="anniversary-title">今日は記念日だよ♡</h1>
+
+            <div class="anniversary-illustration">
+                <span class="anniversary-heart">♡</span>
+                <span class="anniversary-flower">✿</span>
+                <span class="anniversary-heart">♡</span>
+            </div>
+
+            <h2 class="anniversary-heading">3つまでサービスを選んでね</h2>
+
+            <button type="button" class="anniversary-button" @onclick="CloseAnniversaryPopup">
+                OK
+            </button>
+
+        </div>
+    </div>
+}
+
+@code {
+    // 特別日かどうか
+    private bool isSpecialDay;
+
+    // 記念日ポップアップを表示するかどうか
+    private bool showAnniversaryPopup;
+
+    // メール送信・履歴保存を含む送信処理を実行中か
+    private bool isSubmitting;
+
+    // メール送信が完了しているか
+    private bool emailSent;
+
+    // メール送信後、履歴保存の再試行を行っているか
+    private bool isHistoryRetry;
+
+    // 未完了の送信データが保存されているか
+    private bool hasPendingSubmission;
+
+    // 送信時に入力されたメッセージ
+    private string message = string.Empty;
+
+    // 送信処理中に発生したエラーメッセージ
+    private string errorMessage = string.Empty;
+
+    // 選択されているサービスのIDを管理するセット
+    private HashSet<int> selectedServices = new();
+
+    // 特別な日は最大3つ、それ以外の日は1つまで選択可能
+    private int MaxSelectionCount => isSpecialDay ? 3 : 1;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 未ログインの場合はサービス選択画面を表示せず、ログイン画面へ戻す
+        var isAuthenticated = await AuthService.IsAuthenticatedAsync();
+
+        if (!isAuthenticated)
+        {
+            Navigation.NavigateTo($"{Navigation.BaseUri}Login");
+            return;
+        }
+
+        // 今日が特別日かどうかを判定
+        isSpecialDay = DateService.IsSpecialDay();
+        // ログイン画面から遷移してきた特別日の場合だけポップアップを表示
+        showAnniversaryPopup = isSpecialDay && NavigationMessage.ConsumeAnniversaryPopup();
+
+        // 未完了の送信データを確認
+        var state = await StorageService.GetStateAsync();
+
+        if (state.PendingSubmission is { } pending)
+        {
+            // 未完了の送信がある場合は選択内容を復元し、重複操作を防止
+            hasPendingSubmission = true;
+
+            selectedServices = ServiceData.Services
+                .Where(service => pending.SelectedServices.Contains(service.Name))
+                .Select(service => service.Id)
+                .ToHashSet();
+
+            message = pending.Message ?? string.Empty;
+
+            // メール送信済みで履歴保存だけが未完了の場合は、履歴保存の再試行状態にする
+            if (pending.EmailSent && !pending.HistorySaved)
+            {
+                isHistoryRetry = true;
+                errorMessage = "わがままは送れたけど、履歴保存できなかったよ。もう一回ボタンを押してね";
+            }
+        }
+
+        // 履歴画面への移動時に通信待ちが発生しないよう、バックグラウンドで履歴を取得
+        _ = PreloadHistoriesAsync();
+    }
+
+    // 履歴をバックグラウンドで事前取得する
+    private async Task PreloadHistoriesAsync()
+    {
+        try
+        {
+            await HistoryService.GetHistoriesAsync();
+        }
+        catch
+        {
+            // 取得に失敗した場合はキャッシュせず、
+            // 履歴画面を開いたときに再取得する
+        }
+    }
+
+    // サービスの選択・選択解除を管理する
+    private void ToggleService(int serviceId)
+    {
+        // 履歴保存の再試行中は選択内容を変更させない
+        if (isHistoryRetry)
+            return;
+
+        if (hasPendingSubmission)
+            return;
+
+        // 毎月5日以外は1つだけ選択できる
+        if (!isSpecialDay)
+        {
+            selectedServices.Clear();
+            selectedServices.Add(serviceId);
+            return;
+        }
+
+        // 毎月5日は複数選択（最大3つ）
+        if (selectedServices.Contains(serviceId))
+        {
+            selectedServices.Remove(serviceId);
+            return;
+        }
+
+        if (selectedServices.Count < MaxSelectionCount)
+        {
+            selectedServices.Add(serviceId);
+        }
+    }
+    
+    // 選択内容を保存し、メール送信と履歴保存を実行する
+    private async Task HandleCompleteAsync()
+    {
+        // 処理中・送信済み・未選択の場合は処理を開始しない
+        if (isSubmitting || emailSent || selectedServices.Count == 0)
+            return;
+
+        isSubmitting = true;
+        errorMessage = string.Empty;
+
+        PendingSubmission? pending = null;
+
+        try
+        {
+            var state = await StorageService.GetStateAsync();
+
+            pending = state.PendingSubmission;
+
+            // 送信データがなければ新しく作成
+            if (pending == null)
+            {
+                var selectedServiceNames = ServiceData.Services
+                    .Where(service => selectedServices.Contains(service.Id))
+                    .Select(service => service.Name)
+                    .ToList();
+
+                pending = new PendingSubmission
+                {
+                    // RequestIdは履歴の重複登録を防ぐための一意な識別子
+                    RequestId = Guid.NewGuid().ToString("N"),
+                    Date = DateService.GetTodayString(),
+                    SelectedServices = selectedServiceNames,
+                    Message = message,
+                    EmailSent = false,
+                    HistorySaved = false,
+                    SentAt = null
+                };
+
+                // 送信前にデータを保存し、途中で失敗しても内容を復元できるようにする
+                state.PendingSubmission = pending;
+                await StorageService.SaveStateAsync(state);
+                hasPendingSubmission = true;
+            }
+
+            // まだメールを送信していない場合のみ処理
+            if (!pending.EmailSent)
+            {
+#if DEBUG
+    // デバッグ時は実際のメール送信を行わず、送信済みとして扱う
+    pending.EmailSent = true;
+    pending.SentAt = DateService.GetNow();
+#else
+                // Releaseビルドでは実際にメールを送信
+                var success = await EmailService.SendEmailAsync(pending);
+
+                if (!success)
+                {
+                    errorMessage = "わがままを送れなかったよ。もう一回ボタンを押してね";
+                    return;
+                }
+
+                // メール送信成功
+                pending.EmailSent = true;
+                pending.SentAt = DateService.GetNow();
+#endif
+
+                isHistoryRetry = true;
+
+                // メール送信状態を保存し、再試行時にメールが二重送信されないようにする
+                state.PendingSubmission = pending;
+                await StorageService.SaveStateAsync(state);
+                hasPendingSubmission = true;
+            }
+
+            // まだ履歴を保存していない場合のみ保存
+            if (!pending.HistorySaved)
+            {
+                var history = new CravingHistory
+                {
+                    RequestId = pending.RequestId,
+                    Date = pending.Date,
+                    SelectedServices = pending.SelectedServices,
+                    Message = pending.Message,
+                    SentAt = pending.SentAt ?? DateService.GetNow()
+                };
+
+                // GASへ履歴を保存
+                var response = await HistoryService.SaveHistoryAsync(history);
+
+                // GASの保存結果を確認
+                using var json = JsonDocument.Parse(response);
+
+                var saveSuccess =
+                    json.RootElement.TryGetProperty("success", out var successElement)
+                    && successElement.ValueKind == JsonValueKind.True;
+
+                if (!saveSuccess)
+                {
+                    throw new Exception("GASへの履歴保存に失敗したよ");
+                }
+
+                pending.HistorySaved = true;
+            }
+
+            // メール送信・履歴保存の両方が成功
+            // 未完了データを削除して、次回の送信に備える
+            state.PendingSubmission = null;
+
+            await StorageService.SaveStateAsync(state);
+
+            emailSent = true;
+            isHistoryRetry = false;
+
+            // ログイン画面に成功メッセージを渡す
+            NavigationMessage.SetSubmissionSuccess();
+
+            // ログイン画面へ遷移
+            Navigation.NavigateTo($"{Navigation.BaseUri}Login");
+        }
+        catch (Exception)
+        {
+            // メール送信済みの場合は、メールを再送せず履歴保存だけを再試行できるようにする
+            if (pending?.EmailSent == true)
+            {
+                errorMessage = "わがままは送れたけど、履歴保存できなかったよ。もう一回ボタンを押してね";
+            }
+            else
+            {
+                errorMessage = "わがままを送れなかったよ。通信環境を確認してね";
+            }
+        }
+        finally
+        {
+            // 成功・失敗にかかわらず送信中の状態を解除
+            isSubmitting = false;
+        }
+    }
+
+    // 履歴一覧画面へ移動する
+    private void NavigateToHistory()
+    {
+        Navigation.NavigateTo($"{Navigation.BaseUri}History");
+    }
+
+    // 記念日ポップアップを閉じる
+    private void CloseAnniversaryPopup()
+    {
+        showAnniversaryPopup = false;
+    }
+
+}

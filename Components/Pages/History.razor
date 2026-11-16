@@ -1,0 +1,165 @@
+﻿@page "/History"
+
+@using YourCravings.Models
+@using YourCravings.Services
+
+@inject AuthenticationService AuthService
+@inject HistoryService HistoryService
+@inject NavigationManager Navigation
+
+<PageTitle>わがままの履歴</PageTitle>
+
+<div class="history-page">
+
+    <div class="history-heading">
+        <button type="button" class="history-calendar-button" @onclick="NavigateToHistoryCalendar">
+            カレンダー
+        </button>
+
+        <h2>履歴</h2>
+
+        <button type="button" class="history-back-button" @onclick="GoBack">
+            戻る
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <p class="history-message">履歴を読み込み中...</p>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <p class="history-error">@errorMessage</p>
+    }
+    else if (histories.Count == 0)
+    {
+        <p class="history-message">まだ履歴がないよ</p>
+    }
+
+    else
+    {
+        <div class="history-toolbar">
+            <button type="button"
+                    class="history-sort-button"
+                    @onclick="ToggleSortOrder">
+                @(isDescending ? "新しい順 ↓" : "古い順 ↑")
+            </button>
+        </div>
+
+        <div class="history-list">
+
+            @* 履歴を年月ごとにグループ化して表示 *@
+            @foreach (var monthGroup in SortedHistories.GroupBy(history =>
+                DateTime.ParseExact(
+                    history.Date,
+                    "yyyy-MM-dd",
+                    System.Globalization.CultureInfo.InvariantCulture
+                ).ToString("yyyy年M月")))
+            {
+                <div class="history-month-group">
+
+                    @* 月ごとのわがままの合計数を表示 *@
+                    <h3 class="history-month-heading">
+                        @monthGroup.Key（わがまま：@monthGroup.Sum(history => history.SelectedServices.Count)個）
+                    </h3>
+
+                    @foreach (var history in monthGroup)
+                    {
+                        <div class="history-item">
+
+                            @* 履歴の日付を「○月○日」形式で表示 *@
+                            <div class="history-date">
+                                @DateTime.ParseExact(
+                                    history.Date,
+                                    "yyyy-MM-dd",
+                                    System.Globalization.CultureInfo.InvariantCulture
+                                ).ToString("M月d日")
+                            </div>
+
+                            @* その日に選択されたサービスを一覧表示 *@
+                            <div class="history-services">
+                                @foreach (var service in history.SelectedServices)
+                                {
+                                    <div class="history-service">
+                                        <span>♥</span>
+                                        @service
+                                    </div>
+                                }
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>
+
+@code {
+    // GASから取得したすべての履歴データ
+    private List<CravingHistory> histories = new();
+
+    // 履歴を読み込み中か
+    private bool isLoading = true;
+
+    // 履歴を新しい順で表示するか（初期状態は新しい順）
+    private bool isDescending = true;
+
+    // 履歴の取得に失敗した場合に表示するエラーメッセージ
+    private string errorMessage = string.Empty;
+
+    // 並べ替え設定に応じた履歴一覧を取得する
+    private IEnumerable<CravingHistory> SortedHistories =>
+        isDescending
+            ? histories.OrderByDescending(history => history.Date)
+            : histories.OrderBy(history => history.Date);
+
+
+    // 画面表示時にログイン状態を確認し、履歴を取得する
+    protected override async Task OnInitializedAsync()
+    {
+        // ログインしていない場合はログイン画面へ戻す
+        if (!await AuthService.IsAuthenticatedAsync())
+        {
+            Navigation.NavigateTo($"{Navigation.BaseUri}Login");
+            return;
+        }
+
+        try
+        {
+            // HistoryService経由で履歴を取得（キャッシュがあれば再利用）
+            histories = await HistoryService.GetHistoriesAsync();
+        }
+        catch
+        {
+            // 履歴の取得に失敗した場合はエラーメッセージを表示
+            errorMessage = "履歴を読み込めなかったよ。通信環境を確認してね";
+        }
+        finally
+        {
+            // 成功・失敗にかかわらず読み込み状態を解除
+            isLoading = false;
+        }
+    }
+
+    // 履歴の日付の並び順を新しい順・古い順で切り替える
+    private void ToggleSortOrder()
+    {
+        isDescending = !isDescending;
+    }
+
+    // 履歴カレンダー画面へ移動する
+    private void NavigateToHistoryCalendar()
+    {
+        Navigation.NavigateTo($"{Navigation.BaseUri}HistoryCalendar");
+    }
+
+    // サービス選択画面へ戻る
+    private void GoBack()
+    {
+        Navigation.NavigateTo($"{Navigation.BaseUri}ServiceSelection");
+    }
+}

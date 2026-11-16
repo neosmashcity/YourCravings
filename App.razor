@@ -1,0 +1,31 @@
+﻿<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData"
+                   DefaultLayout="@typeof(MainLayout)" />
+    </Found>
+
+
+    <NotFound>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <div class="not-found-page">
+
+                <div class="not-found-heart">♡</div>
+
+                <h2>404</h2>
+
+                <h3>あれれ？迷子になっちゃった…</h3>
+
+                <p>
+                    探してるページは見つからなかったよ<br />
+                    もしかしたら、ページが移動しちゃったのかも
+                </p>
+
+                <a href="./" class="not-found-button">
+                    トップページに戻る ♡
+                </a>
+
+            </div>
+        </LayoutView>
+    </NotFound>
+
+</Router>

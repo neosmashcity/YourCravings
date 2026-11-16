@@ -1,0 +1,96 @@
+/* CSS for Login component */
+
+/* ログイン画面全体のレイアウト */
+.login-page {
+    min-height: 75vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 20px;
+}
+
+/* ログインカードのデザイン */
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 35px 25px;
+    background: #fff8fb;
+    border: 1px solid #f8dce8;
+    border-radius: 24px;
+    box-shadow: 0 8px 25px rgba(220, 120, 160, 0.12);
+    transform: translateY(-30px);
+}
+
+/* ウェルカムメッセージ */
+.login-welcome {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+    /* ウェルカムタイトル */
+    .login-welcome h1 {
+        color: #df83a9;
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    /* ウェルカム説明文 */
+    .login-welcome p {
+        color: #a98596;
+        font-size: 0.9rem;
+    }
+
+/* 合言葉入力欄のラベル */
+.login-card form label {
+    display: block;
+    color: #b96e8d;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+/* 合言葉入力欄 */
+.login-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #efc5d7;
+    border-radius: 12px;
+    background: white;
+    outline: none;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* ログイン時のエラーメッセージ */
+.login-error {
+    color: #d95375;
+    font-size: 0.85rem;
+    margin-top: 10px;
+    margin-bottom: 0;
+}
+
+/* ログインボタン */
+.login-button {
+    margin-top: 22px;
+}
+
+    /* ログインボタンの無効時 */
+    .login-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+/* 送信済み・確認中などのメッセージカード */
+.already-selected {
+    padding: 30px 20px;
+    color: #d77da2;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-align: center;
+    background: #fff4f8;
+    border: 1px solid #f5d4e1;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 420px;
+    transform: translateY(-30px);
+}

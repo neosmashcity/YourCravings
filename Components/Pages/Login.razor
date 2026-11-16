@@ -1,0 +1,173 @@
+﻿@page "/Login"
+
+@using YourCravings.Services
+
+@inject AuthenticationService AuthService
+@inject HistoryService HistoryService
+@inject NavigationManager Navigation
+@inject NavigationMessageService NavigationMessage
+
+<PageTitle>ログイン</PageTitle>
+
+<div class="login-page">
+
+    @if (showSubmissionSuccess)
+    {
+        <div class="already-selected">わがままを送信したよ♡</div>
+    }
+    else if (isCheckingToday)
+    {
+        <div class="already-selected">確認中...</div>
+    }
+    else if (isAlreadySelected)
+    {
+        <div class="already-selected">もう今日は選べないよ</div>
+    }
+    else
+    {
+        <div class="login-card">
+            <div class="login-welcome">
+                <h1>Welcome ♡</h1>
+                <p>ふたりだけの秘密の場所</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(checkErrorMessage))
+            {
+                <p class="login-error">@checkErrorMessage</p>
+                <button type="button" class="login-button" @onclick="CheckTodayStatusAsync">
+                    もう一度確認する
+                </button>
+            }
+            else
+            {
+                <form @onsubmit="HandleLoginAsync" @onsubmit:preventDefault>
+
+                    <label for="passphrase">
+                        ふたりの合言葉を入力してね
+                    </label>
+
+                    <input id="passphrase"
+                           type="password"
+                           class="login-input"
+                           @bind="passphrase"
+                           placeholder="合言葉を入力"
+                           autocomplete="current-password" />
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <p class="login-error">@errorMessage</p>
+                    }
+
+                    <button type="submit" class="login-button" disabled="@isLoggingIn">
+                        @(isLoggingIn ? "確認中..." : "ログイン ♡")
+                    </button>
+                </form>
+            }
+
+        </div>
+    }
+
+</div>
+
+@code {
+    // ログイン時に入力された合言葉
+    private string passphrase = string.Empty;
+
+    // ログイン時のエラーメッセージ
+    private string errorMessage = string.Empty;
+
+    // 今日の送信状況を確認する際のエラーメッセージ
+    private string checkErrorMessage = string.Empty;
+
+    // 今日すでにわがままを送信しているか
+    private bool isAlreadySelected;
+
+    // 送信完了メッセージを表示するか
+    private bool showSubmissionSuccess;
+
+    // ログイン処理を実行中か
+    private bool isLoggingIn;
+
+    // 今日の送信状況を確認中か（初期状態は確認中）
+    private bool isCheckingToday = true;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 送信完了メッセージを一度だけ取得する
+        // 取得後はNavigationMessage側で表示状態が消費される
+        showSubmissionSuccess = NavigationMessage.ConsumeSubmissionSuccess();
+
+        if (!showSubmissionSuccess)
+        {
+            await CheckTodayStatusAsync();
+        }
+        else
+        {
+            // 送信完了メッセージを表示する場合は、今日の送信状態を再確認しない
+            isCheckingToday = false;
+        }
+    }
+
+    // 画面表示時に今日の送信状態を確認
+    private async Task CheckTodayStatusAsync()
+    {
+        isCheckingToday = true;
+        checkErrorMessage = string.Empty;
+
+        try
+        {
+            // GASから今日の履歴を取得し、送信済みかどうかを判定
+            isAlreadySelected = await HistoryService.CheckTodayAsync();
+        }
+        catch
+        {
+            // 通信に失敗した場合は、再確認できるようエラーを表示
+            checkErrorMessage = "今日の送信状態を確認できなかったよ。通信環境を確認してね";
+        }
+        finally
+        {
+            isCheckingToday = false;
+        }
+    }
+
+    // 合言葉を検証してログインする
+    private async Task HandleLoginAsync()
+    {
+        // ログイン処理中や送信済み、確認中、確認エラーの場合はログインを実行しない
+        if (isLoggingIn ||
+            isAlreadySelected ||
+            isCheckingToday ||
+            !string.IsNullOrEmpty(checkErrorMessage))
+        {
+            return;
+        }
+
+        isLoggingIn = true;
+        errorMessage = string.Empty;
+
+        try
+        {
+            // 入力された合言葉を認証サービスで検証
+            var success = await AuthService.LoginAsync(passphrase);
+
+            if (!success)
+            {
+                errorMessage = "正しい合言葉を入力してね♡";
+                passphrase = string.Empty;
+                return;
+            }
+
+            // 認証成功後、記念日ポップアップの表示を許可
+            NavigationMessage.SetAnniversaryPopup();
+
+            // サービス選択画面へ移動
+            Navigation.NavigateTo($"{Navigation.BaseUri}ServiceSelection");
+        }
+        finally
+        {
+            // 成功・失敗にかかわらずログイン処理中の状態を解除
+            isLoggingIn = false;
+        }
+    }
+}
